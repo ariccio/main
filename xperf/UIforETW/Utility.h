@@ -19,10 +19,10 @@ limitations under the License.
 #include <vector>
 #include <string>
 
-std::vector<std::wstring> split(const std::wstring& s, char c);
+std::vector<std::wstring> split(const std::wstring& s, const char c);
 // If fullPaths == true then the names returned will be full Paths to the files. Otherwise
 // they will just be the file portions.
-std::vector<std::wstring> GetFileList(const std::wstring& pattern, bool fullPaths = false);
+std::vector<std::wstring> GetFileList(const std::wstring& pattern, const bool fullPaths = false);
 
 // Load an ANSI or UTF-16 file into a wstring
 std::wstring LoadFileAsText(const std::wstring& fileName);

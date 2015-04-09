@@ -38,7 +38,7 @@ public:
 // Dialog Data
 	enum { IDD = IDD_UIFORETW_DIALOG };
 
-	void vprintf(const wchar_t* pFormat, va_list marker);
+	void vprintf(_In_z_ _Printf_format_string_ PCWSTR const pFormat, va_list marker);
 
 private:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV support

@@ -43,7 +43,7 @@ static CUIforETWDlg* pMainWindow;
 // This convenient hack function is so that the ChildProcess code can
 // print to the main output window. This function can only be called
 // from the main thread.
-void outputPrintf(_Printf_format_string_ const wchar_t* pFormat, ...)
+void outputPrintf(_In_z_ _Printf_format_string_ PCWSTR const pFormat, ...)
 {
 	va_list args;
 	va_start(args, pFormat);
@@ -51,12 +51,12 @@ void outputPrintf(_Printf_format_string_ const wchar_t* pFormat, ...)
 	va_end(args);
 }
 
-void CUIforETWDlg::vprintf(const wchar_t* pFormat, va_list args)
+void CUIforETWDlg::vprintf(_In_z_ _Printf_format_string_ PCWSTR const pFormat, va_list args)
 {
 	wchar_t buffer[5000];
 	_vsnwprintf_s(buffer, _TRUNCATE, pFormat, args);
 
-	for (const wchar_t* pBuf = buffer; *pBuf; ++pBuf)
+	for (PCWSTR pBuf = buffer; *pBuf; ++pBuf)
 	{
 		// Need \r\n as a line separator.
 		if (pBuf[0] == '\n')

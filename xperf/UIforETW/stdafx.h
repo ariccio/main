@@ -20,14 +20,15 @@ limitations under the License.
 #define VC_EXTRALEAN            // Exclude rarely-used stuff from Windows headers
 #endif
 
-#include "targetver.h"
-
 #define _ATL_CSTRING_EXPLICIT_CONSTRUCTORS      // some CString constructors will be explicit
 
 // turns off MFC's hiding of some common and often safely ignored warning messages
 #define _AFX_ALL_WARNINGS
 
-#include <afxwin.h>         // MFC core and standard components
+#include <afxwin.h>         // MFC Core //MUST BE INCLUDED FIRST!!!!!!!!!!!!!
+
+#include "targetver.h"
+
 #include <afxext.h>         // MFC extensions
 
 
@@ -47,7 +48,7 @@ limitations under the License.
 #include <sal.h>
 
 // Global function for printing to the dialog output window.
-void outputPrintf(_Printf_format_string_ const wchar_t* pFormat, ...);
+void outputPrintf(_In_z_ _Printf_format_string_ PCWSTR const pFormat, ...);
 // Needed for int64_t and friends
 #include <inttypes.h>
 

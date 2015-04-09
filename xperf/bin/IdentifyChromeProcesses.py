@@ -11,13 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import print_function
 
 import sys
 import os
 import re
 
 if len(sys.argv) < 2:
-  print "Usage: %s tracename" % sys.argv[0]
+  print( "Usage: %s tracename" % sys.argv[0] )
   sys.exit(0)
 
 # Find the space-terminated word after 'type='
@@ -28,7 +29,7 @@ tracename = sys.argv[1]
 command = 'xperf -i "%s" -tle -tti -a process -withcmdline' % tracename
 # Note the importance of printing the '\r' so that the
 # output will be compatible with Windows edit controls.
-print "Chrome PIDs by process type:\r"
+print( "Chrome PIDs by process type:\r" )
 pidsByType = {}
 for line in os.popen(command).readlines():
   if line.count("chrome.exe") > 0:
@@ -44,7 +45,7 @@ for line in os.popen(command).readlines():
 keys = pidsByType.keys()
 keys.sort()
 for type in keys:
-  print "%-10s:" % type,
+  print( "%-10s:" % type, end='' )
   for pid in pidsByType[type]:
-    print "%d" % pid,
-  print "\r"
+    print( "%d" % pid, end='' )
+  print( "\r" )

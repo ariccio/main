@@ -45,7 +45,7 @@ DWORD DirectoryMonitor::DirectoryMonitorThread()
 	HANDLE handles[] = { hChangeHandle, hShutdownRequest_ };
 	for (;;)
 	{
-		DWORD dwWaitStatus = WaitForMultipleObjects(ARRAYSIZE(handles), &handles[0], FALSE, INFINITE);
+		const DWORD dwWaitStatus = WaitForMultipleObjects(ARRAYSIZE(handles), &handles[0], FALSE, INFINITE);
 
 		switch (dwWaitStatus)
 		{

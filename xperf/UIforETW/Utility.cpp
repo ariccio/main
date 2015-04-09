@@ -18,7 +18,7 @@ limitations under the License.
 #include "Utility.h"
 #include <fstream>
 
-std::vector<std::wstring> split(const std::wstring& s, char c)
+std::vector<std::wstring> split(const std::wstring& s, const char c)
 {
 	std::wstring::size_type i = 0;
 	std::wstring::size_type j = s.find(c);
@@ -37,7 +37,7 @@ std::vector<std::wstring> split(const std::wstring& s, char c)
 	return result;
 }
 
-std::vector<std::wstring> GetFileList(const std::wstring& pattern, bool fullPaths)
+std::vector<std::wstring> GetFileList(const std::wstring& pattern, const bool fullPaths)
 {
 	std::wstring directory;
 	if (fullPaths)
@@ -54,7 +54,7 @@ std::vector<std::wstring> GetFileList(const std::wstring& pattern, bool fullPath
 			result.push_back(directory + findData.cFileName);
 		} while (FindNextFile(hFindFile, &findData));
 
-		FindClose(hFindFile);
+		VERIFY( FindClose(hFindFile) );
 	}
 
 	return result;
@@ -71,7 +71,7 @@ std::wstring LoadFileAsText(const std::wstring& fileName)
 
 	// Find the file length.
 	f.seekg(0, std::ios_base::end);
-	size_t length = (size_t)f.tellg();
+	size_t length = static_cast<size_t>( f.tellg() );
 	f.seekg(0, std::ios_base::beg);
 
 	// Allocate a buffer and read the file.
@@ -111,38 +111,70 @@ void WriteTextAsFile(const std::wstring& fileName, const std::wstring& text)
 void SetRegistryDWORD(HKEY root, const std::wstring& subkey, const std::wstring& valueName, DWORD value)
 {
 	HKEY key;
-	LONG result = RegOpenKeyEx(root, subkey.c_str(), 0, KEY_ALL_ACCESS, &key);
-	if (result == ERROR_SUCCESS)
+	const LONG openRootKeyResult = RegOpenKeyEx(root, subkey.c_str(), 0, KEY_ALL_ACCESS, &key);
+	ASSERT( openRootKeyResult == ERROR_SUCCESS );
+
+	//we should properly report error instead of silently failing?
+	if (openRootKeyResult == ERROR_SUCCESS)
 	{
 		LONG setResult = RegSetValueEx(key, valueName.c_str(), 0, REG_DWORD, reinterpret_cast<const BYTE*>(&value), sizeof(value));
-		RegCloseKey(key);
+		const LONG keyCloseResult = RegCloseKey(key);
+		VERIFY( keyCloseResult == ERROR_SUCCESS );
 	}
 }
 
 void CreateRegistryKey(HKEY root, const std::wstring& subkey, const std::wstring& newKey)
 {
 	HKEY key;
-	LONG result = RegOpenKeyEx(root, subkey.c_str(), 0, KEY_ALL_ACCESS, &key);
-	if (result == ERROR_SUCCESS)
+	const LONG openRootKeyResult = RegOpenKeyEx(root, subkey.c_str(), 0, KEY_ALL_ACCESS, &key);
+	if (openRootKeyResult == ERROR_SUCCESS)
 	{
 		HKEY resultKey;
-		result = RegCreateKey(key, newKey.c_str(), &resultKey);
-		if (result == ERROR_SUCCESS)
+		const LONG createKeyResult = RegCreateKey(key, newKey.c_str(), &resultKey);
+		if (createKeyResult == ERROR_SUCCESS)
 		{
-			RegCloseKey(resultKey);
+			const LONG keyCloseResult = RegCloseKey(resultKey);
+			VERIFY( keyCloseResult == ERROR_SUCCESS );
 		}
-		RegCloseKey(key);
+		const LONG keyCloseResult = RegCloseKey(key);
+		VERIFY( keyCloseResult == ERROR_SUCCESS );
 	}
 }
 
 std::wstring GetEditControlText(HWND hEdit)
 {
-	std::wstring result;
-	int length = GetWindowTextLength(hEdit);
+	std::wstring result;//unused??
+
+	//If the window has no text, the return value [of GetWindowTextLength] is zero. To get extended error information, call GetLastError.
+	//If the function succeeds, the return value [of GetWindowTextLength] is the length, in characters, of the text.
+	//The return value, [can be used] to guide buffer allocation.
+	const int length = GetWindowTextLength(hEdit);
+
+	if ( length == 0 )
+	{
+		//Is this a failure condition?
+		return L"";
+	}
+
+
 	std::vector<wchar_t> buffer(length + 1);
-	GetWindowText(hEdit, &buffer[0], buffer.size());
+
+	//If the function succeeds, the return value [of GetWindowText] is the length, in characters, of the copied string, not including the terminating null character. 
+	//If the window has no title bar or text, if the title bar is empty, or if the window or control handle is invalid, the return value [of GetWindowText] is zero.
+	const int windowTextResult = GetWindowText(hEdit, &buffer[0], buffer.size());
+
+	//it's kinda silly to "Double-verify that the buffer is null-terminated" if we haven't even checked that GetWindowText successfully wrote to `buffer`.
+	//Hell, all characters up to ( buffer.size( ) - 1 ) could be nonzero garbage, and null-terminating that means that we're still returning uninitialized memory!
+	if ( windowTextResult == 0 )
+	{
+		//TODO: pending discussion, return empty string on failure.
+		return L"";
+	}
+
+
+
 	// Double-verify that the buffer is null-terminated.
-	buffer[buffer.size() - 1] = 0;
+	buffer.at( buffer.size() - 1 ) = 0;
 	return &buffer[0];
 }
 
@@ -150,7 +182,7 @@ std::wstring AnsiToUnicode(const std::string& text)
 {
 	// Determine number of wide characters to be allocated for the
 	// Unicode string.
-	size_t cCharacters = text.size() + 1;
+	const int cCharacters = static_cast<int>( text.size() ) + 1;
 
 	std::vector<wchar_t> buffer(cCharacters);
 
@@ -228,7 +260,7 @@ void SmartEnableWindow(HWND Win, BOOL Enable)
 
 std::wstring GetFilePart(const std::wstring& path)
 {
-	const wchar_t* pLastSlash = wcsrchr(path.c_str(), '\\');
+	PCWSTR const pLastSlash = wcsrchr(path.c_str(), '\\');
 	if (pLastSlash)
 		return pLastSlash + 1;
 	// If there's no slash then the file part is the entire string.
@@ -238,7 +270,7 @@ std::wstring GetFilePart(const std::wstring& path)
 std::wstring GetFileExt(const std::wstring& path)
 {
 	std::wstring filePart = GetFilePart(path);
-	const wchar_t* pLastPeriod = wcsrchr(filePart.c_str(), '.');
+	PCWSTR const pLastPeriod = wcsrchr(filePart.c_str(), '.');
 	if (pLastPeriod)
 		return pLastPeriod;
 	return L"";
@@ -246,7 +278,7 @@ std::wstring GetFileExt(const std::wstring& path)
 
 std::wstring GetDirPart(const std::wstring& path)
 {
-	const wchar_t* pLastSlash = wcsrchr(path.c_str(), '\\');
+	PCWSTR const pLastSlash = wcsrchr(path.c_str(), '\\');
 	if (pLastSlash)
 		return path.substr(0, pLastSlash + 1 - path.c_str());
 	// If there's no slash then there is no directory.
@@ -274,7 +306,7 @@ int DeleteOneFile(HWND hwnd, const std::wstring& path)
 
 int DeleteFiles(HWND hwnd, const std::vector<std::wstring>& paths)
 {
-	std::vector<wchar_t> fileNames;
+	_NullNull_terminated_ std::vector<wchar_t> fileNames;
 	for (auto& path : paths)
 	{
 		// Push the file name and its NULL terminator onto the vector.
@@ -305,40 +337,52 @@ void SetClipboardText(const std::wstring& text)
 	if (!cb)
 		return;
 
-	EmptyClipboard();
+	VERIFY( EmptyClipboard( ) );
 
-	size_t length = (text.size() + 1) * sizeof(wchar_t);
+	const rsize_t length = (text.size() + 1) * sizeof(wchar_t);
 	HANDLE hmem = GlobalAlloc(GMEM_MOVEABLE, length);
 	if (hmem)
 	{
-		void *ptr = GlobalLock(hmem);
+		void* ptr = GlobalLock(hmem);
 		if (ptr != NULL)
 		{
 			memcpy(ptr, text.c_str(), length);
-			GlobalUnlock(hmem);
+			
+			//If the memory object is still locked after decrementing the lock count, the return value [of GlobalUnlock] is a nonzero value.
+			//If the memory object is unlocked after decrementing the lock count, [GlobalUnlock] returns zero and GetLastError returns NO_ERROR.
+			//If [GlobalUnlock] fails, the return value is zero and GetLastError returns a value other than NO_ERROR.
+			const BOOL unlockResult = GlobalUnlock(hmem);
+			if ( unlockResult == 0 )
+			{
+				const DWORD lastErr = GetLastError( );
+				ASSERT( lastErr == NO_ERROR );
+			}
 
-			SetClipboardData(CF_UNICODETEXT, hmem);
+			//If [SetClipboardData] fails, the return value is NULL
+			VERIFY( SetClipboardData(CF_UNICODETEXT, hmem) );
 		}
 	}
 
-	CloseClipboard();
+	VERIFY( CloseClipboard() );
 }
 
 int64_t GetFileSize(const std::wstring& path)
 {
 	LARGE_INTEGER result;
 	HANDLE hFile = CreateFile(path.c_str(), GENERIC_READ,
-		FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING,
+		( FILE_SHARE_READ | FILE_SHARE_WRITE ), NULL, OPEN_EXISTING,
 		FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hFile == INVALID_HANDLE_VALUE)
 		return 0;
 
 	if (GetFileSizeEx(hFile, &result))
 	{
-		CloseHandle(hFile);
+
+		//If [CloseHandle] succeeds, the return value is nonzero.
+		VERIFY( CloseHandle(hFile) );
 		return result.QuadPart;
 	}
-	CloseHandle(hFile);
+	VERIFY( CloseHandle(hFile) );
 	return 0;
 }
 
