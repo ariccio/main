@@ -69,7 +69,9 @@ void CUIforETWDlg::vprintf(_In_z_ _Printf_format_string_ PCWSTR const pFormat, v
 			output_ += pBuf[0];
 	}
 
-	SetDlgItemText(IDC_OUTPUT, output_.c_str());
+
+	//If [SetDlgItemText] succeeds, the return value is nonzero.
+	VERIFY( SetDlgItemText(IDC_OUTPUT, output_.c_str()) );
 
 	// Make sure the end of the data is visible.
 	btOutput_.SetSel(0, -1);
