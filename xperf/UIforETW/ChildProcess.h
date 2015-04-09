@@ -63,7 +63,7 @@ private:
 	// The processOutput_ string is written to by the listener thread.
 	// Don't modify processOutput_ without acquiring the lock.
 	CCriticalSection outputLock_;
-	std::wstring processOutput_;
+	_Guarded_by_( outputLock_ ) std::wstring processOutput_;
 
 	// Output handles for the child process -- connected to the pipe.
 	HANDLE hStdOutput_ = INVALID_HANDLE_VALUE;

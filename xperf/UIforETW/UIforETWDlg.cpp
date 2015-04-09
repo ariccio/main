@@ -70,8 +70,7 @@ void CUIforETWDlg::vprintf(_In_z_ _Printf_format_string_ PCWSTR const pFormat, v
 	}
 
 
-	//If [SetDlgItemText] succeeds, the return value is nonzero.
-	VERIFY( SetDlgItemText(IDC_OUTPUT, output_.c_str()) );
+	CWnd::SetDlgItemText(IDC_OUTPUT, output_.c_str());
 
 	// Make sure the end of the data is visible.
 	btOutput_.SetSel(0, -1);
@@ -229,6 +228,7 @@ void CUIforETWDlg::SetSymbolPath()
 		std::string symbolPath = "SRV*c:\\symbols*http://msdl.microsoft.com/download/symbols";
 		if (bChromeDeveloper_)
 			symbolPath = "SRV*c:\\symbols*http://msdl.microsoft.com/download/symbols;SRV*c:\\symbols*https://chromium-browser-symsrv.commondatastorage.googleapis.com";
+
 		(void)_putenv(("_NT_SYMBOL_PATH=" + symbolPath).c_str());
 		outputPrintf(L"Setting _NT_SYMBOL_PATH to %s (Microsoft%s). "
 			L"Set _NT_SYMBOL_PATH yourself if you want different defaults.\n",
@@ -256,6 +256,7 @@ BOOL CUIforETWDlg::OnInitDialog()
 
 	CRect windowRect;
 	GetWindowRect(&windowRect);
+
 	initialWidth_ = lastWidth_ = windowRect.Width();
 	initialHeight_ = lastHeight_ = windowRect.Height();
 
@@ -610,10 +611,27 @@ std::wstring CUIforETWDlg::GenerateResultFilename() const
 {
 	std::wstring traceDir = GetTraceDir();
 
-	char time[9];
-	_strtime_s(time);
-	char date[9];
-	_strdate_s(date);
+	char time[ 9 ] = { 0 };
+
+	//[_strtime_s returns ] zero if successful.
+	const errno_t timeToStrResult = _strtime_s(time);
+	if ( timeToStrResult != 0 )
+	{
+		//TODO: how to handle correctly?
+		return L"";
+	}
+
+	char date[ 9 ] = { 0 };
+
+
+	//[_strdate_s returns] zero if successful.
+	const errno_t dateToStrResult = _strdate_s(date);
+	if ( dateToStrResult != 0 )
+	{
+		//TODO: how to handle correctly?
+		return L"";
+	}
+
 	int hour, min, sec;
 	int year, month, day;
 #pragma warning(suppress : 4996)
@@ -623,7 +641,7 @@ std::wstring CUIforETWDlg::GenerateResultFilename() const
 	wchar_t fileName[MAX_PATH];
 	// Hilarious /analyze warning on this line from bug in _strtime_s annotation!
 	// warning C6054: String 'time' might not be zero-terminated.
-#pragma warning(suppress : 6054)
+//#pragma warning(suppress : 6054)
 	if (3 == sscanf_s(time, "%d:%d:%d", &hour, &min, &sec) &&
 		3 == sscanf_s(date, "%d/%d/%d", &month, &day, &year))
 	{
@@ -1035,7 +1053,7 @@ void CUIforETWDlg::UpdateTraceList()
 	UpdateNotesState();
 }
 
-LRESULT CUIforETWDlg::UpdateTraceListHandler(WPARAM wParam, LPARAM lParam)
+LRESULT CUIforETWDlg::UpdateTraceListHandler(WPARAM /*wParam*/, LPARAM /*lParam*/)
 {
 	UpdateTraceList();
 
@@ -1064,7 +1082,7 @@ void CUIforETWDlg::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
 }
 
 
-void CUIforETWDlg::OnSize(UINT nType, int cx, int cy)
+void CUIforETWDlg::OnSize(UINT nType, int /*cx*/, int /*cy*/)
 {
 	if (nType == SIZE_RESTORED && initialWidth_)
 	{
@@ -1146,7 +1164,7 @@ void CUIforETWDlg::OnBnClickedAbout()
 	dlgAbout.DoModal();
 }
 
-LRESULT CUIforETWDlg::OnHotKey(WPARAM wParam, LPARAM lParam)
+LRESULT CUIforETWDlg::OnHotKey(WPARAM wParam, LPARAM /*lParam*/)
 {
 	switch (wParam)
 	{

@@ -31,6 +31,14 @@ DWORD WINAPI DirectoryMonitor::DirectoryMonitorThreadStatic(LPVOID pVoidThis)
 	return pThis->DirectoryMonitorThread();
 }
 
+//For warning numbers in the range 4700-4999, which are the ones associated with code generation, the state of the warning in effect when the compiler encounters the open curly brace of a function will be in effect for the rest of the function.
+//Using the warning pragma in the function to change the state of a warning that has a number larger than 4699 will only take effect after the end of the function.
+//https://msdn.microsoft.com/en-us/library/2c8f766e(v=vs.120).aspx
+//^
+//| That's SO intuitive!
+#pragma warning(push, 3)
+#pragma warning(disable:4702)//C4702: unreachable code
+
 DWORD DirectoryMonitor::DirectoryMonitorThread()
 {
 	HANDLE hChangeHandle = FindFirstChangeNotification(traceDir_->c_str(), FALSE,
@@ -43,6 +51,8 @@ DWORD DirectoryMonitor::DirectoryMonitorThread()
 	}
 
 	HANDLE handles[] = { hChangeHandle, hShutdownRequest_ };
+	
+	//See: return statement after loop?
 	for (;;)
 	{
 		const DWORD dwWaitStatus = WaitForMultipleObjects(ARRAYSIZE(handles), &handles[0], FALSE, INFINITE);
@@ -61,15 +71,28 @@ DWORD DirectoryMonitor::DirectoryMonitorThread()
 			// Shutdown requested.
 			return 0;
 
+		case WAIT_TIMEOUT:
+			//We asked for INFINITE timeout, Unexpected!
+			assert(0);
+			return 0;
+
+		case WAIT_FAILED:
+			//[WaitForMultipleObjects] has failed. To get extended error information, call GetLastError.
+			assert(0);
+			return 0;
+
+
 		default:
 			assert(0);
 			return 0;
 		}
 	}
 
+	//TODO: why is loop with no condition? All paths return on first iteration?
+	//See: #pragma at top of function!
 	assert(0);
-
 	return 0;
+#pragma warning(pop)
 }
 
 void DirectoryMonitor::StartThread(const std::wstring* traceDir)

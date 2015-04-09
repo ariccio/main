@@ -45,9 +45,9 @@ ChildProcess::~ChildProcess()
 {
 	if (hProcess_)
 	{
-		DWORD exitCode = GetExitCode();
+		const DWORD exitCode = GetExitCode();
 		if (exitCode)
-			outputPrintf(L"Process exit code was %08x (%d)\n", exitCode, exitCode);
+			outputPrintf(L"Process exit code was %08x (%u)\n", exitCode, exitCode);
 		CloseHandle(hProcess_);
 	}
 	if (hOutputAvailable_)

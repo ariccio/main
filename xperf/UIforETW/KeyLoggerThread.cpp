@@ -61,7 +61,10 @@ LRESULT CALLBACK LowLevelKeyboardHook(int nCode, WPARAM wParam, LPARAM lParam)
 		}
 		else if (code >= VK_F1 && code <= VK_F12)
 		{
-			sprintf_s(buffer, "F%d", code + 1 - VK_F1);
+			//Run this rule set: "Microsoft All Rules"
+			//C6340	Mismatch on sign: 'unsigned long' passed as _Param_(3) when some signed type is required in call to 'sprintf_s'
+			//sprintf_s(buffer, "F%d", code + 1 - VK_F1);
+			sprintf_s(buffer, "F%d", ( static_cast<int>( code ) + 1 - VK_F1 ) );
 		}
 		else
 		{

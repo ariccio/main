@@ -117,9 +117,15 @@ void SetRegistryDWORD(HKEY root, const std::wstring& subkey, const std::wstring&
 	//we should properly report error instead of silently failing?
 	if (openRootKeyResult == ERROR_SUCCESS)
 	{
-		LONG setResult = RegSetValueEx(key, valueName.c_str(), 0, REG_DWORD, reinterpret_cast<const BYTE*>(&value), sizeof(value));
+		//If [RegSetValueEx] succeeds, the return value is ERROR_SUCCESS.
+		//If [RegSetValueEx] fails, the return value is a nonzero error code defined in Winerror.h.
+		const LONG setResult = RegSetValueEx(key, valueName.c_str(), 0, REG_DWORD, reinterpret_cast<const BYTE*>(&value), sizeof(value));
+
+		ASSERT( setResult == ERROR_SUCCESS );
+
+
 		const LONG keyCloseResult = RegCloseKey(key);
-		VERIFY( keyCloseResult == ERROR_SUCCESS );
+		ASSERT( keyCloseResult == ERROR_SUCCESS );
 	}
 }
 
@@ -134,10 +140,10 @@ void CreateRegistryKey(HKEY root, const std::wstring& subkey, const std::wstring
 		if (createKeyResult == ERROR_SUCCESS)
 		{
 			const LONG keyCloseResult = RegCloseKey(resultKey);
-			VERIFY( keyCloseResult == ERROR_SUCCESS );
+			ASSERT( keyCloseResult == ERROR_SUCCESS );
 		}
 		const LONG keyCloseResult = RegCloseKey(key);
-		VERIFY( keyCloseResult == ERROR_SUCCESS );
+		ASSERT( keyCloseResult == ERROR_SUCCESS );
 	}
 }
 
