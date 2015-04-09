@@ -903,8 +903,20 @@ void CUIforETWDlg::LaunchTraceViewer(const std::wstring traceFilename, const std
 	if (result)
 	{
 		// Close the handles to avoid leaks.
-		CloseHandle(processInfo.hProcess);
-		CloseHandle(processInfo.hThread);
+		//CloseHandle(processInfo.hProcess);
+		safeCloseHandle(processInfo.hProcess);
+
+
+		//analyze catches this!
+		//safeCloseHandle(processInfo.hProcess);
+
+		
+		//CloseHandle(processInfo.hThread);
+		safeCloseHandle(processInfo.hThread);
+
+
+		//analyze catches this!
+		//safeCloseHandle(processInfo.hThread);
 	}
 	else
 	{

@@ -18,6 +18,7 @@ limitations under the License.
 #include <assert.h>
 #include "KeyLoggerThread.h"
 #include "ETWProviders\etwprof.h"
+#include "Utility.h"
 #include <atomic>
 
 namespace
@@ -247,7 +248,16 @@ void SetKeyloggingState(enum KeyLoggerState state)
 		{
 			PostThreadMessage(s_threadID, WM_QUIT, 0, 0);
 			WaitForSingleObject(s_hThread, INFINITE);
-			CloseHandle(s_hThread);
+
+
+			//CloseHandle(s_hThread);
+			safeCloseHandle(s_hThread);
+			
+			
+			//analyze catches this!
+			//safeCloseHandle(s_hThread);
+			
+			
 			s_hThread = 0;
 		}
 		return;

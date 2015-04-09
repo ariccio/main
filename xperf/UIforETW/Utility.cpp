@@ -385,10 +385,23 @@ int64_t GetFileSize(const std::wstring& path)
 	{
 
 		//If [CloseHandle] succeeds, the return value is nonzero.
-		VERIFY( CloseHandle(hFile) );
+		//VERIFY( CloseHandle(hFile) );
+		VERIFY( safeCloseHandle(hFile) );
+
+
+		//analyze catches this!
+		//VERIFY( safeCloseHandle(hFile) );
+
 		return result.QuadPart;
 	}
-	VERIFY( CloseHandle(hFile) );
+	//VERIFY( CloseHandle(hFile) );
+	VERIFY( safeCloseHandle(hFile) );
+
+
+	//analyze catches this!
+	//VERIFY( safeCloseHandle(hFile) );
+
+
 	return 0;
 }
 
@@ -461,3 +474,10 @@ std::wstring FindPython()
 	// No python found.
 	return L"";
 }
+
+_Success_( return )
+BOOL safeCloseHandle( _Pre_valid_ _Post_ptr_invalid_ HANDLE handle_to_close )
+{
+	return CloseHandle( handle_to_close );
+}
+

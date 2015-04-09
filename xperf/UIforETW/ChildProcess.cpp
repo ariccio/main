@@ -48,11 +48,19 @@ ChildProcess::~ChildProcess()
 		const DWORD exitCode = GetExitCode();
 		if (exitCode)
 			outputPrintf(L"Process exit code was %08x (%u)\n", exitCode, exitCode);
-		CloseHandle(hProcess_);
+		//CloseHandle(hProcess_);
+		safeCloseHandle(hProcess_);
+		
+		//analyze catches this!
+		//safeCloseHandle(hProcess_);
 	}
 	if (hOutputAvailable_)
 	{
-		CloseHandle(hOutputAvailable_);
+		//CloseHandle(hOutputAvailable_);
+		safeCloseHandle(hOutputAvailable_);
+
+		//analyze catches this!
+		//safeCloseHandle(hOutputAvailable_);
 	}
 }
 
@@ -145,7 +153,13 @@ bool ChildProcess::Run(bool showCommand, std::wstring args)
 		TRUE, flags, NULL, NULL, &startupInfo, &processInfo);
 	if (success)
 	{
-		CloseHandle(processInfo.hThread);
+		//CloseHandle(processInfo.hThread);
+		safeCloseHandle(processInfo.hThread);
+
+
+		//analyze catches this!
+		//safeCloseHandle(processInfo.hThread);
+
 		hProcess_ = processInfo.hProcess;
 		return true;
 	}
@@ -201,12 +215,18 @@ void ChildProcess::WaitForCompletion(bool printOutput)
 	// close these if the process never started.
 	if (hStdError_ != INVALID_HANDLE_VALUE)
 	{
-		CloseHandle(hStdError_);
+		//CloseHandle(hStdError_);
+		safeCloseHandle(hStdError_);
+
+		//analyze catches this!
+		//safeCloseHandle(hStdError_);
+
 		hStdError_ = INVALID_HANDLE_VALUE;
 	}
 	if (hStdOutput_ != INVALID_HANDLE_VALUE)
 	{
-		CloseHandle(hStdOutput_);
+		//CloseHandle(hStdOutput_);
+		safeCloseHandle(hStdOutput_);
 		hStdOutput_ = INVALID_HANDLE_VALUE;
 	}
 
@@ -214,14 +234,26 @@ void ChildProcess::WaitForCompletion(bool printOutput)
 	if (hChildThread_)
 	{
 		WaitForSingleObject(hChildThread_, INFINITE);
-		CloseHandle(hChildThread_);
+		//CloseHandle(hChildThread_);
+		safeCloseHandle(hChildThread_);
+		
+		
+		//analyze catches this!
+		//safeCloseHandle(hChildThread_);
+		
 		hChildThread_ = 0;
 	}
 
 	// Clean up.
 	if (hPipe_ != INVALID_HANDLE_VALUE)
 	{
-		CloseHandle(hPipe_);
+		//CloseHandle(hPipe_);
+		safeCloseHandle(hPipe_);
+
+		
+		//analyze catches this!
+		//safeCloseHandle(hPipe_);
+
 		hPipe_ = INVALID_HANDLE_VALUE;
 	}
 

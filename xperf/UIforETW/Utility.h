@@ -76,3 +76,7 @@ WindowsVersion GetWindowsVersion();
 bool IsWindowsServer();
 
 std::wstring FindPython(); // Returns a full path to python.exe or nothing.
+
+
+_Success_( return ) BOOL safeCloseHandle( _Pre_valid_ _Post_ptr_invalid_ HANDLE handle_to_close );
+
