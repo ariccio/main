@@ -611,7 +611,7 @@ std::wstring CUIforETWDlg::GenerateResultFilename() const
 {
 	std::wstring traceDir = GetTraceDir();
 
-	char time[ 9 ] = { 0 };
+	char time[ 10 ] = { 0 };
 
 	//[_strtime_s returns ] zero if successful.
 	const errno_t timeToStrResult = _strtime_s(time);
@@ -621,7 +621,7 @@ std::wstring CUIforETWDlg::GenerateResultFilename() const
 		return L"";
 	}
 
-	char date[ 9 ] = { 0 };
+	char date[ 10 ] = { 0 };
 
 
 	//[_strdate_s returns] zero if successful.
